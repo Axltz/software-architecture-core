@@ -1,3 +1,8 @@
+import hashlib
+
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
 class User:
     def __init__(self, name: str, email: str, password: str):
         self.name = name
@@ -31,11 +36,14 @@ class UserService:
     def __init__(self, repository: UserRepository):
         self.repository = repository
 
-    def createUser(self, name: str, email: str, password: str):
-        if (self.repository.emailExist(email)):
-            fraise ValueError("Email already exist")
 
-        user = User(name, email, password)
+    def createUser(self, name: str, email: str, password: str):
+        if (self.repository.emailExist(email)) is not None:
+            raise ValueError("Email already exist")
+
+        password_hash = hash_password(password)
+        user = User(name, email, password_hash)
+
         self.repository.saveUser(user)
         return user
     
@@ -46,7 +54,7 @@ class UserService:
         if user is None:
             return False
         
-        if user.password == password:
+        if user.password == hash_password(password):
             return True
         
         return False
